@@ -220,7 +220,7 @@ class WikiEngine(BaseEngine):
             text_procesced = self.text_process(page.text)
             result.append({
                 'text':text_procesced,
-                'meta': metadata
+                'meta': meta
             })
         return result
             
