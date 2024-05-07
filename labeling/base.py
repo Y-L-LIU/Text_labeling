@@ -8,6 +8,8 @@ import requests
 import json
 import time
 import wikipediaapi
+from typing import Dict
+from tqdm import tqdm
 @dataclass
 class MetaData:
     '''
@@ -25,7 +27,7 @@ class MetaData:
     data_source:str = None
     category:str = None
     date:datetime = None
-    other=None
+    other:Dict=None
 
     
 class BaseEngine(ABC):
@@ -68,7 +70,6 @@ class ArxivEngine(BaseEngine):
         Process the raw data into our format
         '''
         pass
-
 
     def query_meta(self,arxiv_id):
         '''
@@ -131,7 +132,8 @@ class GutendexEngine(BaseEngine):
         result = []
         cnt = 1
         start_point = self.parse_url(self.base_url+f"topic={query}&languages={language}")
-        print(f'Processing books of {query}, total number is {start_point.get('count')}')
+        total_count = start_point.get('count')
+        print(f'Processing books of {query}, total number is {total_count}')
         print(f'Fetching the data on {cnt}-th page.')
         result.extend(self.fetech_page(start_point))
         next_page = start_point.get("next")
@@ -180,7 +182,7 @@ class WikiEngine(BaseEngine):
 
     def get_categorymembers(self, categorymembers, record, level=0, max_level=1):
         for c in categorymembers.values():
-            print("%s: %s (ns: %d)" % ("*" * (level + 1), c.title, c.ns))
+            # print("%s: %s (ns: %d)" % ("*" * (level + 1), c.title, c.ns))
             record.append((level+1, c.title))
             if c.ns == wikipediaapi.Namespace.CATEGORY and level < max_level:
                 self.get_categorymembers(c.categorymembers, record, level=level + 1, max_level=max_level)
@@ -190,7 +192,7 @@ class WikiEngine(BaseEngine):
         '''
         Process the raw data into our format
         '''
-        pass
+        return text
 
     def query_meta(self, title, category, level):
         return MetaData(
@@ -207,11 +209,11 @@ class WikiEngine(BaseEngine):
         print('Fetching all pages of depth 1 in a given category')
         record = []
         cat = self.wiki_wiki.page(f"Category:{category}")
-        print("Category members: Category:Physics")
+        print(f"Category members: Category:{category}")
         self.get_categorymembers(cat.categorymembers, record)
         print('start fetching')
         result = []
-        for level, title in record:
+        for level, title in tqdm(record):
             page= self.wiki_wiki.page(title)
             if not page.exists():
                 print(f'Page {title} is not existed')
