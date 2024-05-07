@@ -217,17 +217,19 @@ class WikiEngine(BaseEngine):
             for _ in range(3):
                 try:
                     page= self.wiki_wiki.page(title)
+                    if not page.exists():
+                        print(f'Page {title} is not existed')
+                        continue
+                    meta = self.query_meta(title, category, level)
+                    text_procesced = self.text_process(page.text)
                     break
-                except:
+                except Exception as e:
+                    print(e)
                     time.sleep(1)
                     page = None
             if not page:
                 continue
-            if not page.exists():
-                print(f'Page {title} is not existed')
-                continue
-            meta = self.query_meta(title, category, level)
-            text_procesced = self.text_process(page.text)
+            
             result.append({
                 'text':text_procesced,
                 'meta': meta
