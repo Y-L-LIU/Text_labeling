@@ -214,7 +214,15 @@ class WikiEngine(BaseEngine):
         print('start fetching')
         result = []
         for level, title in tqdm(record):
-            page= self.wiki_wiki.page(title)
+            for _ in range(3):
+                try:
+                    page= self.wiki_wiki.page(title)
+                    break
+                except:
+                    time.sleep(1)
+                    page = None
+            if not page:
+                continue
             if not page.exists():
                 print(f'Page {title} is not existed')
                 continue
