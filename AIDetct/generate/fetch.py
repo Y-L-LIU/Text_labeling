@@ -1,14 +1,13 @@
 import multiprocessing
 import time
 from abc import ABC, abstractmethod
-class BaseAPI:
+class BaseAPI(ABC):
     def __init__(self, api_key):
         self.api_key = api_key
 
     @abstractmethod
     def process_data(self, data):
         pass
-
 
     def worker(self,  data_chunk, results, index):
         result = [self.process_data(data) for data in data_chunk]
